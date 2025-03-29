@@ -13,7 +13,7 @@ interface Feedback {
   createdAt: string;
 }
 
-interface Interview {
+export interface Interview {
   id: string;
   role: string;
   level: string;

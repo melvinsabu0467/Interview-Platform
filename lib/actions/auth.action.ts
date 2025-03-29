@@ -1,7 +1,9 @@
 "use server";
 
 import { auth, db } from "@/firebase/admin";
+import { CollectionReference, DocumentData, Query } from "firebase-admin/firestore";
 import { cookies } from "next/headers";
+import  {Interview, SignInParams, SignUpParams, User}  from "../.././types/index";
 
 // Session duration (1 week)
 const SESSION_DURATION = 60 * 60 * 24 * 7;
@@ -130,3 +132,27 @@ export async function isAuthenticated() {
   const user = await getCurrentUser();
   return !!user;
 }
+
+// export async function getInterviewsByUserId(userId: string): Promise<Interview[] | null> {
+//   try {
+//     const querySnapshot = await db
+//       .collection("interviews")
+//       .where('userId', '==', userId)
+//       .orderBy('createdAt', 'desc')
+//       .get();
+
+//     if (querySnapshot.empty) {
+//       return null;  // Return null if no interviews found
+//     }
+
+//     const interviews: Interview[] = querySnapshot.docs.map((doc) => ({
+//       id: doc.id,
+//       ...(doc.data() as Interview),   // Properly cast doc data to Interview type
+//     }));
+
+//     return interviews;
+//   } catch (error) {
+//     console.error("Error fetching interviews:", error);
+//     return null;
+//   }
+// }
