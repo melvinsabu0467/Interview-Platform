@@ -2,9 +2,12 @@
 
 import { generateObject } from "ai";
 import { google } from "@ai-sdk/google";
+import { getFirestore, doc, deleteDoc } from 'firebase/firestore';
+import app from '../../firebase/admin';
 
-import { db } from "@/firebase/admin";
+import { db } from "../..//firebase/admin";
 import { feedbackSchema } from "@/constants";
+import { CreateFeedbackParams, Feedback, GetFeedbackByInterviewIdParams, GetLatestInterviewsParams, Interview } from "@/types";
 
 export async function createFeedback(params: CreateFeedbackParams) {
   const { interviewId, userId, transcript, feedbackId } = params;
@@ -123,3 +126,13 @@ export async function getInterviewsByUserId(
     ...doc.data(),
   })) as Interview[];
 }
+
+export const deleteInterviewById = async (interviewId: string) => {
+  try {
+    await db.collection('interviews').doc(interviewId).delete();
+    console.log(`Interview with ID ${interviewId} successfully deleted.`);
+  } catch (error) {
+    console.error(`Error deleting interview with ID ${interviewId}:`, error);
+    throw error;
+  }
+};

@@ -4,6 +4,8 @@ import { auth, db } from "@/firebase/admin";
 import { CollectionReference, DocumentData, Query } from "firebase-admin/firestore";
 import { cookies } from "next/headers";
 import  {Interview, SignInParams, SignUpParams, User}  from "../.././types/index";
+import {  updateProfile } from 'firebase/auth';
+import { getAuth, EmailAuthProvider, reauthenticateWithCredential, updatePassword } from 'firebase/auth';
 
 // Session duration (1 week)
 const SESSION_DURATION = 60 * 60 * 24 * 7;
@@ -156,3 +158,65 @@ export async function isAuthenticated() {
 //     return null;
 //   }
 // }
+
+export async function clearSessionLogout() {
+  try {
+    // Clear the session cookie by deleting it
+    const cookieStore = await cookies();
+    cookieStore.delete("session");
+
+    // Optionally, you can redirect the user to the login page or another page
+    // Example (if you're using Next.js, you can do it this way):
+    // const router = useRouter();
+    // router.push("/login"); 
+
+    return {
+      success: true,
+      message: "Session cleared and logged out successfully.",
+    };
+  } catch (error) {
+    console.error("Error during session clear logout:", error);
+    return {
+      success: false,
+      message: "Failed to clear session and log out. Please try again.",
+    };
+  }
+}
+
+
+
+
+export async function updateUserProfile({ name }: { name: string }) {
+  const auth = getAuth();  // Ensure this is for client-side authentication
+
+  if (!auth.currentUser) {
+    throw new Error('No authenticated user found.');
+  }
+
+  await updateProfile(auth.currentUser, { displayName: name });
+}
+
+
+
+export async function updateUserPassword({
+  currentPassword,
+  newPassword,
+}: {
+  currentPassword: string;
+  newPassword: string;
+}) {
+  const auth = getAuth();
+  const user = auth.currentUser;
+
+  if (!user || !user.email) {
+    throw new Error('No authenticated user found.');
+  }
+
+  const credential = EmailAuthProvider.credential(user.email, currentPassword);
+
+  // Re-authenticate the user
+  await reauthenticateWithCredential(user, credential);
+
+  // Update the password
+  await updatePassword(user, newPassword);
+}
