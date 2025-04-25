@@ -2,7 +2,9 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { getCurrentUser, updateUserProfile, updateUserPassword } from '@/lib/actions/auth.action';
+import { getCurrentUser, updateUserProfile } from '@/lib/actions/auth.action';
+import { updateUserPassword } from '@/lib/actions/auth.client';
+
 
 export default function ProfilePage() {
     const router = useRouter();
@@ -54,11 +56,12 @@ export default function ProfilePage() {
             setCurrentPassword('');
             setNewPassword('');
             setConfirmPassword('');
-        } catch (error) {
+        } catch (error: any) {
             console.error('Error updating password:', error);
-            setMessage('Failed to update password.');
+            setMessage(error.message || 'Failed to update password.');
         }
     };
+
 
     return (
         <div className="max-w-md mx-auto p-6 bg-gray-800 text-white rounded-lg shadow-lg">
@@ -120,7 +123,7 @@ export default function ProfilePage() {
                 </button>
             </form>
 
-            {message && <p className="mt-4 text-center text-red-500">{message}</p>}
+            {message && <p className="mt-4 text-center text-green-500">{message}</p>}
         </div>
     );
 }

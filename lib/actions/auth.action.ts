@@ -186,37 +186,23 @@ export async function clearSessionLogout() {
 
 
 
+
+
 export async function updateUserProfile({ name }: { name: string }) {
-  const auth = getAuth();  // Ensure this is for client-side authentication
-
-  if (!auth.currentUser) {
-    throw new Error('No authenticated user found.');
+  // 1. Grab the session cookie
+  const cookieStore = await cookies();
+  const sessionCookie = cookieStore.get("session")?.value;
+  if (!sessionCookie) {
+    throw new Error("Not authenticated");
   }
 
-  await updateProfile(auth.currentUser, { displayName: name });
-}
+  // 2. Verify and decode to get the UID
+  const decodedClaims = await auth.verifySessionCookie(sessionCookie, true);
+  const uid = decodedClaims.uid;
 
+  // 3. Update the Firestore users/{uid} document
+  await db.collection("users").doc(uid).update({ name });
 
-
-export async function updateUserPassword({
-  currentPassword,
-  newPassword,
-}: {
-  currentPassword: string;
-  newPassword: string;
-}) {
-  const auth = getAuth();
-  const user = auth.currentUser;
-
-  if (!user || !user.email) {
-    throw new Error('No authenticated user found.');
-  }
-
-  const credential = EmailAuthProvider.credential(user.email, currentPassword);
-
-  // Re-authenticate the user
-  await reauthenticateWithCredential(user, credential);
-
-  // Update the password
-  await updatePassword(user, newPassword);
+  // 4. (Optional) Also update the Auth displayName
+  await auth.updateUser(uid, { displayName: name });
 }

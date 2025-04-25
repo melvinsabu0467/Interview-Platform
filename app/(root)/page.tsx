@@ -5,24 +5,19 @@ import { Button } from "@/components/ui/button";
 import InterviewCard from "@/components/InterviewCard";
 
 import { getCurrentUser } from "@/lib/actions/auth.action";
-import {
-  getInterviewsByUserId,
-  getLatestInterviews,
-} from "@/lib/actions/general.action";
+import { getInterviewsByUserId } from "@/lib/actions/general.action";
 
 async function Home() {
+  // 1. Fetch the signed-in user
   const user = await getCurrentUser();
 
-  const [userInterviews, allInterview] = await Promise.all([
-    getInterviewsByUserId(user?.id!),
-    getLatestInterviews({ userId: user?.id! }),
-  ]);
-
-  const hasPastInterviews = userInterviews?.length! > 0;
-  const hasUpcomingInterviews = allInterview?.length! > 0;
+  // 2. Fetch only the interviews created by this user
+  const userInterviews = await getInterviewsByUserId(user?.id!);
+  const hasInterviews = userInterviews.length > 0;
 
   return (
     <>
+      {/* Hero CTA */}
       <section className="card-cta">
         <div className="flex flex-col gap-6 max-w-lg">
           <h2>Get Interview-Ready with AI-Powered Practice & Feedback</h2>
@@ -44,16 +39,15 @@ async function Home() {
         />
       </section>
 
-
+      {/* User’s Own Interviews */}
       <section className="flex flex-col gap-6 mt-8">
-        <h2>Take Interviews</h2>
-
+        <h2>Your Interviews</h2>
         <div className="interviews-section">
-          {hasUpcomingInterviews ? (
-            allInterview?.map((interview) => (
+          {hasInterviews ? (
+            userInterviews.map((interview) => (
               <InterviewCard
                 key={interview.id}
-                userId={user?.id}
+                userId={user.id}
                 interviewId={interview.id}
                 role={interview.role}
                 type={interview.type}
@@ -62,7 +56,7 @@ async function Home() {
               />
             ))
           ) : (
-            <p>There are no interviews available</p>
+            <p>You haven’t created any interviews yet.</p>
           )}
         </div>
       </section>
